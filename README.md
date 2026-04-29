@@ -37,7 +37,7 @@ GITHUB_CLIENT_SECRET=your-client-secret
 ### 2. Run
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 That's it. Visit **http://localhost** when all containers are healthy (~60s on first run).
@@ -45,7 +45,7 @@ That's it. Visit **http://localhost** when all containers are healthy (~60s on f
 ### 3. Admin panel
 
 ```bash
-docker-compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py createsuperuser
 ```
 
 Visit http://localhost/admin
