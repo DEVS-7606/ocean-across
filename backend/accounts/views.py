@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserSerializer
 from .services import AuthService
 
-FRONTEND_BASE = 'http://localhost:3000'
+FRONTEND_BASE = 'http://localhost'
 
 
 def oauth_redirect(request):
