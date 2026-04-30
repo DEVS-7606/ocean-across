@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import { useSessionCatalog } from '@/hooks/useSessions'
 import { SessionGrid } from '@/components/organisms/SessionGrid'
@@ -8,22 +8,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { GITHUB_OAUTH_URL } from '@/lib/constants'
 
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+  return debounced
+}
+
 export default function HomePage() {
   const { accessToken } = useAuthStore()
   const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
   const { data: sessions, isLoading } = useSessionCatalog(debouncedSearch)
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value)
-    clearTimeout((window as any)._searchTimer)
-    ;(window as any)._searchTimer = setTimeout(() => setDebouncedSearch(e.target.value), 400)
-  }
-
-  const clearSearch = () => {
-    setSearch('')
-    setDebouncedSearch('')
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -34,7 +32,7 @@ export default function HomePage() {
         <Input
           placeholder="Search sessions..."
           value={search}
-          onChange={handleSearchChange}
+          onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
         />
       </div>
@@ -43,7 +41,7 @@ export default function HomePage() {
         sessions={sessions}
         isLoading={isLoading}
         hasSearch={!!debouncedSearch}
-        onClearSearch={clearSearch}
+        onClearSearch={() => setSearch('')}
       />
     </div>
   )

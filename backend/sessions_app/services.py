@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+from core.service_exceptions import NotFoundError, CapacityError
 from .models import Session
 
 
@@ -16,7 +17,14 @@ class SessionService:
         try:
             session = Session.objects.get(pk=session_id, creator=creator)
         except Session.DoesNotExist:
-            raise ValueError("Session not found or not owned by you.")
+            raise NotFoundError("Session not found or not owned by you.")
+
+        new_capacity = data.get('capacity')
+        if new_capacity is not None and new_capacity != session.capacity:
+            booked = session.capacity - session.spots_remaining
+            if new_capacity < booked:
+                raise CapacityError(f'Cannot reduce capacity below {booked} (current bookings)')
+            session.spots_remaining = new_capacity - booked
 
         for field, value in data.items():
             setattr(session, field, value)
@@ -28,7 +36,7 @@ class SessionService:
         try:
             session = Session.objects.get(pk=session_id, creator=creator)
         except Session.DoesNotExist:
-            raise ValueError("Session not found or not owned by you.")
+            raise NotFoundError("Session not found or not owned by you.")
         session.delete()
 
     @staticmethod

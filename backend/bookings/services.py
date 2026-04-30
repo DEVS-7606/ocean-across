@@ -17,8 +17,11 @@ class BookingService:
         except Session.DoesNotExist:
             raise ValueError("Session not found.")
 
-        if Booking.objects.filter(session=session, user=user, status='confirmed').exists():
-            raise ValidationError("You have already booked this session.")
+        existing = Booking.objects.filter(session=session, user=user).first()
+        if existing:
+            if existing.status == 'confirmed':
+                raise ValidationError("You have already booked this session.")
+            raise ValidationError("You previously cancelled this booking and cannot rebook the same session.")
 
         with transaction.atomic():
             session = Session.objects.select_for_update().get(pk=session_id)
@@ -49,3 +52,9 @@ class BookingService:
             session.save(update_fields=['spots_remaining'])
 
         return booking
+
+    @staticmethod
+    def get_creator_bookings(creator):
+        return Booking.objects.filter(
+            session__creator=creator
+        ).select_related('session', 'user').order_by('-booked_at')

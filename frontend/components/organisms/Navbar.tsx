@@ -1,8 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthStore } from '@/stores/auth'
+import { AuthService } from '@/services/auth.service'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,8 +20,19 @@ import {
 import { GITHUB_OAUTH_URL } from '@/lib/constants'
 
 export function Navbar() {
+  const router = useRouter()
+  const queryClient = useQueryClient()
   const { user, isAuthenticated, logout } = useAuth()
-  const { accessToken } = useAuthStore()
+  const { accessToken, refreshToken } = useAuthStore()
+
+  const handleLogout = async () => {
+    if (refreshToken) {
+      try { await AuthService.logout(refreshToken) } catch {}
+    }
+    logout()
+    queryClient.clear()
+    router.replace('/')
+  }
   const dashboardHref = user?.role === 'creator' ? '/creator' : '/dashboard'
 
   return (
@@ -36,7 +50,7 @@ export function Navbar() {
               <Link href={dashboardHref} className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900">
                 Dashboard
               </Link>
-              <UserMenu user={user} onLogout={logout} />
+              <UserMenu user={user} onLogout={handleLogout} />
             </>
           ) : (
             <LoginButton />
@@ -76,11 +90,11 @@ function UserMenu({ user, onLogout }: { user: NonNullable<ReturnType<typeof useA
           </Avatar>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium">{user.name || 'User'}</p>
-            <p className="text-xs text-slate-500">{user.email}</p>
+            <p className="text-sm font-medium truncate">{user.name || 'User'}</p>
+            <p className="text-xs text-slate-500 truncate">{user.email}</p>
             <Badge variant="outline" className="w-fit text-xs capitalize">{user.role}</Badge>
           </div>
         </DropdownMenuLabel>

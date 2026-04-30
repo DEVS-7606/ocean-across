@@ -10,6 +10,12 @@ from .services import AuthService
 FRONTEND_BASE = 'http://localhost'
 
 
+def oauth_start(request):
+    """Flush Django session before starting OAuth so a new GitHub account creates a new user."""
+    request.session.flush()
+    return redirect('/social-auth/login/github/')
+
+
 def oauth_redirect(request):
     """
     social-django calls SOCIAL_AUTH_LOGIN_REDIRECT_URL after completing OAuth.

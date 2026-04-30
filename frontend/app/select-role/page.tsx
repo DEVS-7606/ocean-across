@@ -1,10 +1,10 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth'
-import api from '@/lib/api'
+import { useSetRole } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
@@ -13,8 +13,8 @@ import { Loader2, BookOpen, Sparkles } from 'lucide-react'
 function SelectRoleContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { setTokens, setUser } = useAuthStore()
-  const [loading, setLoading] = useState<string | null>(null)
+  const { setTokens } = useAuthStore()
+  const setRole = useSetRole()
 
   useEffect(() => {
     const access = searchParams.get('access')
@@ -22,21 +22,14 @@ function SelectRoleContent() {
     if (access && refresh) setTokens(access, refresh)
   }, [])
 
-  const handleSelectRole = async (role: 'user' | 'creator') => {
-    setLoading(role)
-    try {
-      const { data } = await api.post('/auth/role/', { role })
-      setTokens(data.access, data.refresh)
-      const meRes = await api.get('/auth/me/', {
-        headers: { Authorization: `Bearer ${data.access}` },
-      })
-      setUser(meRes.data)
-      toast.success(`You're all set as a ${role}!`)
-      router.replace(role === 'creator' ? '/creator' : '/dashboard')
-    } catch {
-      toast.error('Something went wrong')
-      setLoading(null)
-    }
+  const handleSelectRole = (role: 'user' | 'creator') => {
+    setRole.mutate(role, {
+      onSuccess: ({ role }) => {
+        toast.success(`You're all set as a ${role}!`)
+        router.replace(role === 'creator' ? '/creator' : '/')
+      },
+      onError: () => toast.error('Something went wrong'),
+    })
   }
 
   return (
@@ -58,7 +51,7 @@ function SelectRoleContent() {
               </div>
               <CardTitle className="flex items-center justify-between">
                 I want to learn
-                {loading === 'user' && <Loader2 className="h-4 w-4 animate-spin" />}
+                {setRole.isPending && setRole.variables === 'user' && <Loader2 className="h-4 w-4 animate-spin" />}
               </CardTitle>
               <CardDescription>
                 Browse and book sessions from creators and experts
@@ -76,7 +69,7 @@ function SelectRoleContent() {
               </div>
               <CardTitle className="flex items-center justify-between">
                 I want to create
-                {loading === 'creator' && <Loader2 className="h-4 w-4 animate-spin" />}
+                {setRole.isPending && setRole.variables === 'creator' && <Loader2 className="h-4 w-4 animate-spin" />}
               </CardTitle>
               <CardDescription>
                 Create and manage sessions, build your audience

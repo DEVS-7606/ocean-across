@@ -3,6 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
 
 urlpatterns = [
+    path('github/', views.oauth_start, name='oauth_start'),
     path('oauth/redirect/', views.oauth_redirect, name='oauth_redirect'),
     path('me/', views.me, name='me'),
     path('profile/', views.update_profile, name='update_profile'),

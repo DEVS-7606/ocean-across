@@ -3,15 +3,14 @@
 import { Suspense } from 'react'
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuthStore } from '@/stores/auth'
-import api from '@/lib/api'
+import { useAuthCallback } from '@/hooks/useAuth'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 function CallbackHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { setTokens, setUser } = useAuthStore()
+  const authCallback = useAuthCallback()
 
   useEffect(() => {
     const access = searchParams.get('access')
@@ -23,19 +22,23 @@ function CallbackHandler() {
       return
     }
 
-    setTokens(access, refresh)
-
-    api
-      .get('/auth/me/', { headers: { Authorization: `Bearer ${access}` } })
-      .then(({ data }) => {
-        setUser(data)
-        toast.success(`Welcome back, ${data.name || data.email}!`)
-        router.replace(data.role === 'creator' ? '/creator' : '/dashboard')
-      })
-      .catch(() => {
-        toast.error('Failed to load profile')
-        router.replace('/')
-      })
+    authCallback.mutate(
+      { access, refresh },
+      {
+        onSuccess: (user) => {
+          if (!user.role) {
+            router.replace('/select-role')
+          } else {
+            toast.success(`Welcome back, ${user.name || user.email}!`)
+            router.replace(user.role === 'creator' ? '/creator' : '/')
+          }
+        },
+        onError: () => {
+          toast.error('Failed to load profile')
+          router.replace('/')
+        },
+      }
+    )
   }, [])
 
   return (

@@ -43,7 +43,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost/api
-        NEXT_PUBLIC_GITHUB_OAUTH_URL: http://localhost/social-auth/login/github/
+        NEXT_PUBLIC_GITHUB_OAUTH_URL: http://localhost/api/auth/github/
     restart: unless-stopped
     expose:
       - "3000"

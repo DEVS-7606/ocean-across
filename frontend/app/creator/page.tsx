@@ -7,6 +7,7 @@ import { useCreatorSessions, useCreateSession, useUpdateSession, useDeleteSessio
 import { useCreatorBookings } from '@/hooks/useBookings'
 import { Session } from '@/types'
 import { StatCard } from '@/components/molecules/StatCard'
+import { ConfirmDialog } from '@/components/molecules/ConfirmDialog'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { StatusBadge } from '@/components/atoms/StatusBadge'
 import { PriceLabel } from '@/components/atoms/PriceLabel'
@@ -55,6 +56,7 @@ export default function CreatorDashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSession, setEditingSession] = useState<Session | null>(null)
   const [form, setForm] = useState<SessionFormData>(EMPTY_FORM)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const totalRevenue = bookings?.reduce((sum, b) => sum + Number(b.session.price), 0) ?? 0
 
@@ -123,7 +125,7 @@ export default function CreatorDashboardPage() {
             sessions={sessions}
             isLoading={sessionsLoading}
             onEdit={openEdit}
-            onDelete={(id) => deleteSession.mutate(id)}
+            onDelete={(id) => setDeleteId(id)}
             onCreateFirst={openCreate}
             isDeleting={deleteSession.isPending}
           />
@@ -142,6 +144,16 @@ export default function CreatorDashboardPage() {
         onSubmit={handleSubmit}
         isSubmitting={createSession.isPending || updateSession.isPending}
         isEditing={!!editingSession}
+      />
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteId(null) }}
+        title="Delete Session"
+        description="This will permanently delete this session and all its bookings. This action cannot be undone."
+        confirmLabel="Delete"
+        isPending={deleteSession.isPending}
+        onConfirm={() => deleteId !== null && deleteSession.mutate(deleteId, { onSuccess: () => setDeleteId(null) })}
       />
     </div>
   )

@@ -32,7 +32,7 @@ export function useCreateSession() {
       toast.success('Session created')
       queryClient.invalidateQueries({ queryKey: ['creator-sessions'] })
     },
-    onError: () => toast.error('Failed to create session'),
+    onError: (err: any) => toast.error(err?.response?.data?.error || 'Failed to create session'),
   })
 }
 
@@ -45,7 +45,7 @@ export function useUpdateSession() {
       toast.success('Session updated')
       queryClient.invalidateQueries({ queryKey: ['creator-sessions'] })
     },
-    onError: () => toast.error('Failed to update session'),
+    onError: (err: any) => toast.error(err?.response?.data?.error || 'Failed to update session'),
   })
 }
 
@@ -57,6 +57,6 @@ export function useDeleteSession() {
       toast.success('Session deleted')
       queryClient.invalidateQueries({ queryKey: ['creator-sessions'] })
     },
-    onError: () => toast.error('Failed to delete session'),
+    onError: (err: any) => toast.error(err?.response?.data?.error || 'Failed to delete session'),
   })
 }

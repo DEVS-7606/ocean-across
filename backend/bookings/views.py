@@ -1,12 +1,16 @@
 from django.core.exceptions import ValidationError
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django_ratelimit.decorators import ratelimit
+from rest_framework.throttling import UserRateThrottle
 from .models import Booking
 from .serializers import BookingSerializer
 from .services import BookingService
+
+
+class BookingRateThrottle(UserRateThrottle):
+    rate = '10/min'
 
 
 class UserBookingListView(generics.ListAPIView):
@@ -21,7 +25,7 @@ class UserBookingListView(generics.ListAPIView):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@ratelimit(key='user', rate='10/m', method='POST', block=True)
+@throttle_classes([BookingRateThrottle])
 def book_session(request, session_id):
     try:
         booking = BookingService.book_session(request.user, session_id)
@@ -44,3 +48,13 @@ def cancel_booking(request, booking_id):
         return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
 
     return Response({'message': 'Booking cancelled.'})
+
+from sessions_app.permissions import IsCreator
+
+
+class CreatorBookingOverview(generics.ListAPIView):
+    serializer_class = BookingSerializer
+    permission_classes = [IsCreator]
+
+    def get_queryset(self):
+        return BookingService.get_creator_bookings(self.request.user)

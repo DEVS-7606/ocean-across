@@ -40,6 +40,6 @@ export function useCancelBooking() {
       toast.success('Booking cancelled')
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
     },
-    onError: () => toast.error('Failed to cancel'),
+    onError: (err: any) => toast.error(err?.response?.data?.error || 'Failed to cancel'),
   })
 }

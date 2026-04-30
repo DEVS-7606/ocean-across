@@ -2,6 +2,7 @@ from django.core.exceptions import PermissionDenied
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from core.service_exceptions import NotFoundError, CapacityError
 from .models import Session
 from .serializers import SessionSerializer, SessionWriteSerializer
 from .permissions import IsCreator, IsSessionCreator
@@ -23,7 +24,9 @@ class SessionDetailView(generics.RetrieveAPIView):
     """Public session detail — no auth required."""
     serializer_class = SessionSerializer
     permission_classes = [AllowAny]
-    queryset = Session.objects.filter(status='published').select_related('creator')
+
+    def get_queryset(self):
+        return SessionService.get_public_catalog()
 
 
 class CreatorSessionListCreateView(generics.ListCreateAPIView):
@@ -55,7 +58,7 @@ class CreatorSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
         return SessionWriteSerializer if self.request.method in ('PUT', 'PATCH') else SessionSerializer
 
     def get_queryset(self):
-        return Session.objects.filter(creator=self.request.user)
+        return SessionService.get_creator_sessions(self.request.user)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -66,26 +69,16 @@ class CreatorSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
             session = SessionService.update_session(
                 request.user, instance.pk, serializer.validated_data
             )
-        except ValueError as e:
+        except NotFoundError as e:
             return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except CapacityError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(SessionSerializer(session, context={'request': request}).data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         try:
             SessionService.delete_session(request.user, instance.pk)
-        except ValueError as e:
+        except NotFoundError as e:
             return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class CreatorBookingOverview(generics.ListAPIView):
-    permission_classes = [IsCreator]
-
-    def list(self, request, *args, **kwargs):
-        from bookings.serializers import BookingSerializer
-        from bookings.models import Booking
-        bookings = Booking.objects.filter(
-            session__creator=request.user
-        ).select_related('session', 'user').order_by('-booked_at')
-        return Response(BookingSerializer(bookings, many=True, context={'request': request}).data)

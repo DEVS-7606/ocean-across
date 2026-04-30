@@ -90,6 +90,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 }
 
 SIMPLE_JWT = {
@@ -107,6 +108,7 @@ SIMPLE_JWT = {
 SOCIAL_AUTH_GITHUB_KEY = os.environ.get('GITHUB_CLIENT_ID')
 SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('GITHUB_CLIENT_SECRET')
 SOCIAL_AUTH_GITHUB_SCOPE = ['user:email']
+SOCIAL_AUTH_GITHUB_AUTH_EXTRA_ARGUMENTS = {'prompt': 'consent', 'login': ''}
 
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
@@ -147,7 +149,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache',
     }
 }
 RATELIMIT_USE_CACHE = 'default'
