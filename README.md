@@ -11,7 +11,7 @@ A full-stack web application where creators can publish sessions and users can b
 | Database | PostgreSQL 16 |
 | Auth | GitHub OAuth via python-social-auth + JWT (djangorestframework-simplejwt) |
 | Infrastructure | Docker Compose (4 containers) + Nginx reverse proxy |
-| Rate Limiting | django-ratelimit on booking and auth endpoints |
+| Rate Limiting | DRF UserRateThrottle + DatabaseCache on booking endpoint |
 
 ## Quick Start
 
@@ -161,3 +161,11 @@ Key variables:
 ## AI Prompt Log
 
 See [PROMPTS.md](./PROMPTS.md) for the complete log of AI-assisted prompts used during development.
+
+## Testing
+
+See [TEST_SCENARIOS.md](./TEST_SCENARIOS.md) for the full manual test plan covering auth, bookings, permissions, and rate limiting.
+
+## Coding Conventions
+
+See [CONVENTIONS.md](./CONVENTIONS.md) for the architecture rules (layered backend, atomic design frontend, SOLID principles).
