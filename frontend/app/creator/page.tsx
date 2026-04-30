@@ -30,12 +30,13 @@ interface SessionFormData {
   duration_mins: string
   capacity: string
   thumbnail_url: string
+  thumbnail: File | null
   status: string
 }
 
 const EMPTY_FORM: SessionFormData = {
   title: '', description: '', price: '0', datetime: '',
-  duration_mins: '60', capacity: '10', thumbnail_url: '', status: 'published',
+  duration_mins: '60', capacity: '10', thumbnail_url: '', thumbnail: null, status: 'published',
 }
 
 export default function CreatorDashboardPage() {
@@ -76,6 +77,7 @@ export default function CreatorDashboardPage() {
       duration_mins: String(session.duration_mins),
       capacity: String(session.capacity),
       thumbnail_url: session.thumbnail_url,
+      thumbnail: null,
       status: session.status,
     })
     setDialogOpen(true)
@@ -83,7 +85,9 @@ export default function CreatorDashboardPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const payload = { ...form } as any
+    const { thumbnail, ...rest } = form
+    const payload: Record<string, any> = { ...rest }
+    if (thumbnail) payload.thumbnail = thumbnail
 
     if (editingSession) {
       updateSession.mutate(
@@ -220,11 +224,11 @@ function BookingsTab({ bookings, isLoading }: { bookings?: any[]; isLoading: boo
 
 function SessionFormDialog({ open, onOpenChange, form, onChange, onSubmit, isSubmitting, isEditing }: {
   open: boolean; onOpenChange: (v: boolean) => void
-  form: SessionFormData; onChange: (key: keyof SessionFormData, val: string) => void
+  form: SessionFormData; onChange: (key: keyof SessionFormData, val: any) => void
   onSubmit: (e: React.FormEvent) => void; isSubmitting: boolean; isEditing: boolean
 }) {
   const field = (key: keyof SessionFormData) => ({
-    value: form[key],
+    value: form[key] as string,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => onChange(key, e.target.value),
   })
 
@@ -243,7 +247,12 @@ function SessionFormDialog({ open, onOpenChange, form, onChange, onSubmit, isSub
             <div><Label>Date & Time *</Label><Input type="datetime-local" {...field('datetime')} required className="mt-1" /></div>
             <div><Label>Capacity</Label><Input type="number" min="1" {...field('capacity')} className="mt-1" /></div>
           </div>
-          <div><Label>Thumbnail URL</Label><Input placeholder="https://..." {...field('thumbnail_url')} className="mt-1" /></div>
+          <div>
+            <Label>Thumbnail</Label>
+            <Input type="file" accept="image/*" className="mt-1"
+              onChange={(e) => onChange('thumbnail', e.target.files?.[0] || null)} />
+            {form.thumbnail && <p className="mt-1 text-xs text-slate-500">{form.thumbnail.name}</p>}
+          </div>
           <div>
             <Label>Status</Label>
             <select {...field('status')} className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">

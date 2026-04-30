@@ -10,8 +10,9 @@ A full-stack web application where creators can publish sessions and users can b
 | Backend | Django 5 + Django REST Framework |
 | Database | PostgreSQL 16 |
 | Auth | GitHub OAuth via python-social-auth + JWT (djangorestframework-simplejwt) |
-| Infrastructure | Docker Compose (4 containers) + Nginx reverse proxy |
+| Infrastructure | Docker Compose (5 containers) + Nginx reverse proxy |
 | Rate Limiting | DRF UserRateThrottle + DatabaseCache on booking endpoint |
+| Object Storage | MinIO (S3-compatible) for session thumbnail uploads |
 
 ## Quick Start
 
@@ -76,11 +77,12 @@ Visit http://localhost/admin
          │ Next.js  │         │  Django    │
          │  :3000   │         │  DRF :8000 │
          └──────────┘         └─────┬──────┘
-                                    │
-                              ┌─────▼──────┐
-                              │ PostgreSQL  │
-                              │   :5432    │
-                              └────────────┘
+                              ┌─────┴──────┐
+                              │            │
+                        ┌─────▼──────┐ ┌───▼────┐
+                        │ PostgreSQL │ │ MinIO  │
+                        │   :5432    │ │ :9000  │
+                        └────────────┘ └────────┘
 ```
 
 **Request routing via Nginx:**
@@ -155,6 +157,9 @@ Key variables:
 | `GITHUB_CLIENT_SECRET` | From GitHub OAuth App settings |
 | `POSTGRES_*` | Database connection config |
 | `NEXT_PUBLIC_API_URL` | Backend API URL (default: http://localhost/api) |
+| `MINIO_ACCESS_KEY` | MinIO root user (default: minioadmin) |
+| `MINIO_SECRET_KEY` | MinIO root password (default: minioadmin) |
+| `MINIO_BUCKET` | S3 bucket name for uploads (default: ocean-across) |
 
 ---
 

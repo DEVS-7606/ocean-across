@@ -46,9 +46,9 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
         <ArrowLeft className="h-4 w-4" /> Back to sessions
       </Link>
 
-      {session.thumbnail_url && (
+      {(session.thumbnail_display || session.thumbnail_url) && (
         <div className="mb-6 h-64 w-full overflow-hidden rounded-xl">
-          <img src={session.thumbnail_url} alt={session.title} className="h-full w-full object-cover" />
+          <img src={session.thumbnail_display || session.thumbnail_url} alt={session.title} className="h-full w-full object-cover" />
         </div>
       )}
 

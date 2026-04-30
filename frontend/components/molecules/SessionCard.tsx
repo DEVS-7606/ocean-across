@@ -19,7 +19,7 @@ export function SessionCard({ session }: SessionCardProps) {
     <Link href={`/sessions/${session.id}`}>
       <Card className="group h-full cursor-pointer overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md">
         <SessionThumbnail
-          src={session.thumbnail_url}
+          src={session.thumbnail_display || session.thumbnail_url}
           alt={session.title}
           isBooked={session.is_booked}
           isFull={isFull}

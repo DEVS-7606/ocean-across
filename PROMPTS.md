@@ -397,6 +397,47 @@ This file documents all AI-assisted prompts used during this project, what was t
 
 ---
 
+## Prompt #18 — Architecture Audit & High-Severity Fixes
+
+**Date:** 2026-04-30
+**Tool:** Kiro CLI (claude-sonnet-4-6)
+
+**Prompt:**
+> "Check whether Layered Architecture, atomic design, SOLID principles and clean code principles are properly been followed"
+
+**What was done:**
+- Ran a full codebase audit (backend: 12 violations, frontend: 15 violations)
+- Fixed all 9 high-severity violations:
+  1. Moved capacity validation logic from `Session.save()` to `SessionService.update_session()`
+  2. Created typed exceptions (`NotFoundError`, `CapacityError`) in `core/service_exceptions.py` — views catch typed exceptions instead of parsing error strings
+  3. Moved `CreatorBookingOverview` from sessions_app to bookings app with `BookingService.get_creator_bookings()`
+  4. Replaced direct ORM queries in views with service method calls
+  5. Extracted `useAuthCallback` and `useSetRole` hooks — auth pages no longer call `api.*` directly
+  6. Replaced `(window as any)._searchTimer` global debounce with `useDebouncedValue` hook
+- Created `CONVENTIONS.md` with architecture rules for backend (layered), frontend (atomic design + service→hook→component), and SOLID principles
+
+---
+
+## Prompt #19 — MinIO Object Storage (Bonus Feature)
+
+**Date:** 2026-04-30
+**Tool:** Kiro CLI (claude-sonnet-4-6)
+
+**Prompt:**
+> "Set up MinIO for session thumbnail uploads"
+
+**What was done:**
+- Added MinIO container to docker-compose (S3-compatible object storage, ports 9000/9001)
+- Added `boto3` + `django-storages` to backend with `S3Boto3Storage` as default file storage
+- Added `thumbnail` ImageField to Session model (uploads to `thumbnails/` prefix in MinIO bucket)
+- Created `ensure_bucket` management command — auto-creates bucket with public-read policy on startup
+- Added `thumbnail_display` serializer field — returns MinIO URL if uploaded, falls back to `thumbnail_url`
+- Updated frontend session form with file upload input
+- Updated `SessionCard` and session detail page to display uploaded thumbnails
+- MinIO console accessible at `http://localhost:9001` (minioadmin/minioadmin)
+
+---
+
 ## Summary
 
 | Area | AI-generated | Manually written / verified |

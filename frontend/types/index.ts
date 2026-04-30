@@ -20,6 +20,7 @@ export interface Session {
   capacity: number
   spots_remaining: number
   thumbnail_url: string
+  thumbnail_display: string | null
   status: 'draft' | 'published' | 'cancelled'
   created_at: string
   updated_at: string

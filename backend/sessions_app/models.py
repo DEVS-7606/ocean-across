@@ -22,6 +22,7 @@ class Session(models.Model):
     capacity = models.PositiveIntegerField(default=10)
     spots_remaining = models.PositiveIntegerField()
     thumbnail_url = models.URLField(blank=True)
+    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='published')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
