@@ -133,7 +133,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost',
     'http://localhost:3000',
     'http://127.0.0.1',
-]
+] + [f'http://{h}' for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1', 'backend')]
 CORS_ALLOW_CREDENTIALS = True
 
 LANGUAGE_CODE = 'en-us'
