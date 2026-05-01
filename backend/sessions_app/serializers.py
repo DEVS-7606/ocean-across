@@ -1,4 +1,3 @@
-import os
 from rest_framework import serializers
 from .models import Session
 from accounts.serializers import UserSerializer
@@ -32,7 +31,10 @@ class SessionSerializer(serializers.ModelSerializer):
 
     def get_thumbnail_display(self, obj):
         if obj.thumbnail:
-            return f"{os.environ.get('MINIO_PUBLIC_URL', 'http://localhost:9000')}/ocean-across/{obj.thumbnail.name}"
+            request = self.context.get('request')
+            host = request.get_host() if request else 'localhost'
+            scheme = 'https' if request and request.is_secure() else 'http'
+            return f"{scheme}://{host}/storage/{obj.thumbnail.name}"
         return obj.thumbnail_url or None
 
 
