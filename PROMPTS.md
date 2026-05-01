@@ -438,6 +438,46 @@ This file documents all AI-assisted prompts used during this project, what was t
 
 ---
 
+## Prompt #20 — Logout Query Cache Bug
+
+**Date:** 2026-04-30
+**Tool:** Kiro CLI (claude-sonnet-4-6)
+
+**Prompt:**
+> "After logout it still shows Booked badge on session cards"
+
+**Root cause:** TanStack Query cached session data (including `is_booked: true`) persisted after logout. Zustand state was cleared but the query cache wasn't.
+
+**Fix:** Added `queryClient.clear()` to the Navbar logout handler to wipe all cached queries on logout.
+
+---
+
+## Prompt #21 — AWS EC2 Deployment
+
+**Date:** 2026-05-01
+**Tool:** Kiro CLI (claude-sonnet-4-6)
+
+**Prompt:**
+> "Help me deploy on AWS EC2"
+
+**What was done:**
+- Launched EC2 t3.micro (free tier) on ap-south-1 (Mumbai) with Amazon Linux 2023
+- Installed Docker, Docker Compose, and buildx on the instance
+- Added 2GB swap for memory headroom on 1GB RAM instance
+- Cloned repo, configured `.env` with EC2 public IP
+- Built and started all 5 containers via `docker compose up --build -d`
+
+**Issues encountered and fixed:**
+1. **`DisallowedHost` error** — EC2 IP wasn't in Django's `ALLOWED_HOSTS`. Fixed by adding IP to `.env` and recreating the backend container.
+2. **OAuth redirecting to `localhost`** — `FRONTEND_BASE` was hardcoded to `http://localhost`. Made it configurable via `FRONTEND_BASE` env var.
+3. **Thumbnails not loading** — MinIO port 9000 not exposed externally. Fixed by adding `/storage/` proxy in Nginx that routes to MinIO internally. Updated `thumbnail_display` serializer to use request host dynamically.
+4. **CORS blocking requests** — EC2 IP wasn't in `CORS_ALLOWED_ORIGINS`. Made CORS auto-include all `ALLOWED_HOSTS`.
+5. **Missing `os` import** — `accounts/views.py` used `os.environ` without importing `os`.
+
+**Live URL:** `http://3.110.105.80`
+
+---
+
 ## Summary
 
 | Area | AI-generated | Manually written / verified |
